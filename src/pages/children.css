@@ -1,0 +1,143 @@
+/* ── Children list ───────────────────────────────────────────────────────────── */
+
+.children-list {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.child-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.child-row:last-child { border-bottom: none; }
+.child-row:hover { background: #f8fafc; }
+
+.child-row-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.child-row-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.tag {
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.age { color: var(--text-muted); }
+
+/* ── Profile ─────────────────────────────────────────────────────────────────── */
+
+.profile-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.profile-topbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.profile-subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  margin-bottom: 24px;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.profile-section {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.profile-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profile-field {
+  margin-bottom: 12px;
+}
+.profile-field:last-child { margin-bottom: 0; }
+
+.profile-field-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.profile-field-value {
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.contact-card {
+  padding: 10px 14px;
+  background: #f8fafc;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+}
+.contact-card:last-child { margin-bottom: 0; }
+
+.contact-priority {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.contact-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+.contact-rel  { font-size: 13px; color: var(--text-muted); }
+.contact-phone { font-size: 13px; color: #2563eb; margin-top: 4px; }
+
+.pickup-list {
+  list-style: none;
+  padding: 0;
+}
+.pickup-list li {
+  padding: 6px 0;
+  font-size: 14px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+}
+.pickup-list li:last-child { border-bottom: none; }

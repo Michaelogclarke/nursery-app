@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: nursery_user
+      POSTGRES_PASSWORD: nursery_pass
+      POSTGRES_DB: nursery
+    ports:
+      - "5432:5432"
+    volumes:
+      - nursery_data:/var/lib/postgresql/data
+      - ../migration.sql:/docker-entrypoint-initdb.d/migration.sql
+
+volumes:
+  nursery_data:

@@ -1,0 +1,26 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --sidebar-width: 220px;
+  --sidebar-bg: #1e2a3a;
+  --sidebar-text: #c8d6e5;
+  --sidebar-active-bg: #2e4160;
+  --sidebar-active-text: #ffffff;
+  --sidebar-hover-bg: #263547;
+  --main-bg: #f4f6f9;
+  --text-primary: #1a2332;
+  --text-muted: #6b7a8d;
+  --border: #dde3ea;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
