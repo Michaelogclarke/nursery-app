@@ -121,9 +121,10 @@ RESTART IDENTITY CASCADE;
 -- ── Rooms ─────────────────────────────────────────────────────────────────────
 
 INSERT INTO rooms (name, max_capacity, age_group) VALUES
-  ('Babies',     8,  'under_2s'),
-  ('Toddlers',   12, 'two_to_three'),
-  ('Pre-School', 16, 'three_plus');
+  ('Babies',       12, 'under_2s'),
+  ('Toddlers',     20, 'two_to_three'),
+  ('Pre-School',   20, 'three_plus'),
+  ('After School', 20, 'four_plus');
 
 -- ── Staff — 13 workers ────────────────────────────────────────────────────────
 

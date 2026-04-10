@@ -11,9 +11,10 @@ CREATE TABLE IF NOT EXISTS rooms (
 
 -- Seed rooms — edit names/capacities to match your nursery
 INSERT INTO rooms (name, max_capacity) VALUES
-  ('Babies',   8),
-  ('Toddlers', 12),
-  ('Pre-School', 16)
+  ('Babies',       12),
+  ('Toddlers',     20),
+  ('Pre-School',   20),
+  ('After School', 20)
 ON CONFLICT DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS children (

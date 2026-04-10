@@ -25,7 +25,10 @@ export default function ChildForm() {
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [roomBlocked, setRoomBlocked] = useState(null)
   const [capacityWarnings, setCapacityWarnings] = useState([])
+  const [overrideInput, setOverrideInput] = useState('')
+  const [overrideConfirmed, setOverrideConfirmed] = useState(false)
 
   useEffect(() => {
     if (isEdit) {
@@ -62,13 +65,24 @@ export default function ChildForm() {
     if (field === 'dob' && value) {
       const room = await window.electronAPI.children.getAutoRoom(value)
       setAutoRoom(room)
+      setRoomBlocked(null)
+      setCapacityWarnings([])
+      setOverrideInput('')
+      setOverrideConfirmed(false)
       if (room) {
         setForm(f => ({ ...f, dob: value, room_id: room.id }))
         const result = await window.electronAPI.children.checkRoomCapacity(
           room.id,
           isEdit ? Number(id) : null
         )
-        setCapacityWarnings(result.ok ? [] : result.conflicts)
+        if (!result.ok) {
+          const hard = result.conflicts.find(c => c.reason === 'Room is already at capacity')
+          if (hard) {
+            setRoomBlocked(`${room.name} is currently full and cannot accept any more children.`)
+          } else {
+            setCapacityWarnings(result.conflicts)
+          }
+        }
       }
     }
   }
@@ -97,6 +111,7 @@ export default function ChildForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (roomBlocked && !overrideConfirmed) return
     setSaving(true)
     setError(null)
     try {
@@ -255,16 +270,60 @@ export default function ChildForm() {
           </button>
         </section>
 
+        {roomBlocked && !overrideConfirmed && (
+          <div className="form-notification form-notification--error">
+            <div className="form-notification-title">This placement is not possible</div>
+            <p>{roomBlocked}</p>
+            <p>
+              To override this restriction, type the child's full name exactly as entered
+              above and press Confirm Override.
+            </p>
+            <div className="form-override">
+              <input
+                className="form-override-input"
+                placeholder={`Type "${form.first_name} ${form.last_name}" to confirm`}
+                value={overrideInput}
+                onChange={e => setOverrideInput(e.target.value)}
+              />
+              <div className="form-override-actions">
+                <button
+                  type="button"
+                  className="btn-danger"
+                  disabled={overrideInput.trim().toLowerCase() !==
+                    `${form.first_name} ${form.last_name}`.trim().toLowerCase()}
+                  onClick={() => setOverrideConfirmed(true)}
+                >
+                  Confirm Override
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate(isEdit ? `/children/${id}` : '/children')}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {overrideConfirmed && (
+          <div className="form-notification form-notification--warning">
+            <div className="form-notification-title">Override active</div>
+            <p>You are saving this child into a full room. This has been noted.</p>
+          </div>
+        )}
+
         {capacityWarnings.length > 0 && (
-          <div className="form-capacity-warning">
-            <strong>Capacity conflict detected</strong>
-            <p>Placing this child here will block the following mandatory room moves:</p>
+          <div className="form-notification form-notification--warning">
+            <div className="form-notification-title">Future capacity conflict</div>
+            <p>Adding this child will leave no space for the following mandatory room moves:</p>
             <ul>
               {capacityWarnings.map((w, i) => (
                 <li key={i}>{w.reason}</li>
               ))}
             </ul>
-            <p>Consider freeing up space before proceeding.</p>
+            <p>Consider whether a space will be available before proceeding.</p>
           </div>
         )}
 
@@ -276,7 +335,11 @@ export default function ChildForm() {
           >
             Cancel
           </button>
-          <button type="submit" className="btn-primary" disabled={saving}>
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={saving || (!!roomBlocked && !overrideConfirmed)}
+          >
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>

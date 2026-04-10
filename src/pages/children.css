@@ -90,6 +90,69 @@
   align-items: center;
 }
 
+/* ── Form notifications ───────────────────────────────────────────────────── */
+
+.form-notification {
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-notification ul {
+  margin: 8px 0 8px 18px;
+}
+
+.form-notification p + p {
+  margin-top: 6px;
+}
+
+.form-notification--error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #7f1d1d;
+}
+
+.form-notification--warning {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #78350f;
+}
+
+.form-notification-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.form-override {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-override-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--text-primary);
+}
+.form-override-input:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px #fecaca;
+}
+
+.form-override-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ── Profile ─────────────────────────────────────────────────────────────────── */
 
 .profile-topbar {
