@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import './attendance.css'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -23,8 +23,21 @@ export default function Attendance() {
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState(null)
   const [busy, setBusy]       = useState(null) // child id currently being actioned
+  const [search, setSearch]   = useState('')
+  const searchRef             = useRef(null)
 
   const isToday = date === today()
+
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
 
   const load = useCallback(() => {
     setLoading(true)
@@ -60,6 +73,13 @@ export default function Attendance() {
       setBusy(null)
     }
   }
+
+  const filtered = search.trim()
+    ? register.filter(row =>
+        `${row.first_name} ${row.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
+        `${row.last_name} ${row.first_name}`.toLowerCase().includes(search.toLowerCase())
+      )
+    : register
 
   const counts = register.reduce(
     (acc, row) => {
@@ -121,13 +141,29 @@ export default function Attendance() {
         </div>
       )}
 
+      {!loading && !error && register.length > 0 && (
+        <div className="search-bar">
+          <input
+            ref={searchRef}
+            type="search"
+            placeholder="Search by name… (Ctrl+K)"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+      )}
+
       {loading && <p className="state-msg">Loading…</p>}
 
       {!loading && !error && register.length === 0 && (
         <p className="state-msg">No active children found.</p>
       )}
 
-      {!loading && !error && register.length > 0 && (
+      {!loading && !error && register.length > 0 && filtered.length === 0 && (
+        <p className="state-msg">No children match your search.</p>
+      )}
+
+      {!loading && !error && filtered.length > 0 && (
         <div className="register-table-wrap">
           <table className="register-table">
             <thead>
@@ -141,7 +177,7 @@ export default function Attendance() {
               </tr>
             </thead>
             <tbody>
-              {register.map(row => {
+              {filtered.map(row => {
                 const status = getStatus(row)
                 const isBusy = busy === row.id
                 return (

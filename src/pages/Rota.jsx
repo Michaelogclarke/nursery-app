@@ -42,7 +42,7 @@ function ratioStatus(room, entries, shiftKey) {
 
 // ── Assign cell ───────────────────────────────────────────────────────────────
 
-function AssignCell({ roomId, shift, entries, date, isToday, onAssign, onUnassign }) {
+function AssignCell({ roomId, shift, entries, date, isPast, onAssign, onUnassign }) {
   const [open, setOpen]             = useState(false)
   const [available, setAvailable]   = useState([])
   const [loadingStaff, setLoading]  = useState(false)
@@ -69,7 +69,7 @@ function AssignCell({ roomId, shift, entries, date, isToday, onAssign, onUnassig
       {cellEntries.map(entry => (
         <div key={entry.id} className="rota-assignment">
           <span>{entry.first_name} {entry.last_name}</span>
-          {isToday && (
+          {!isPast && (
             <button className="btn-unassign" onClick={() => onUnassign(entry.id)} title="Remove">
               ×
             </button>
@@ -77,11 +77,11 @@ function AssignCell({ roomId, shift, entries, date, isToday, onAssign, onUnassig
         </div>
       ))}
 
-      {isToday && !open && (
+      {!isPast && !open && (
         <button className="btn-assign" onClick={openAssign}>+ Assign</button>
       )}
 
-      {isToday && open && (
+      {!isPast && open && (
         <div className="assign-dropdown">
           {loadingStaff ? (
             <span className="assign-loading">Loading…</span>
@@ -115,6 +115,7 @@ export default function Rota() {
   const [error, setError]     = useState(null)
 
   const isToday = date === today()
+  const isPast  = date < today()
 
   const load = useCallback(() => {
     setLoading(true)
@@ -158,7 +159,7 @@ export default function Rota() {
         </div>
       </div>
 
-      {!isToday && (
+      {isPast && (
         <div className="past-date-banner">
           Viewing rota for {new Date(date + 'T12:00:00').toLocaleDateString('en-GB', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
@@ -186,7 +187,7 @@ export default function Rota() {
                       {room.age_group && (
                         <div className="room-header-age">{AGE_GROUP_LABEL[room.age_group]}</div>
                       )}
-                      {isToday && room.children_in > 0 && (
+                      {!isPast && room.children_in > 0 && (
                         <div className={`room-header-ratio ${hasRatioIssue ? 'ratio--insufficient' : 'ratio--ok'}`}>
                           {room.children_in} child{room.children_in !== 1 ? 'ren' : ''}
                           {required > 0 && ` · needs ${required} staff`}
@@ -210,14 +211,14 @@ export default function Rota() {
                     return (
                       <td
                         key={room.id}
-                        className={`rota-td-cell ${isToday && status === 'insufficient' ? 'rota-td-cell--warning' : ''}`}
+                        className={`rota-td-cell ${!isPast && status === 'insufficient' ? 'rota-td-cell--warning' : ''}`}
                       >
                         <AssignCell
                           roomId={room.id}
                           shift={shift.key}
                           entries={entries}
                           date={date}
-                          isToday={isToday}
+                          isPast={isPast}
                           onAssign={handleAssign}
                           onUnassign={handleUnassign}
                         />
@@ -231,7 +232,7 @@ export default function Rota() {
         </div>
       )}
 
-      {!loading && !error && isToday && (
+      {!loading && !error && !isPast && (
         <p className="rota-ratio-note">
           Staff-to-child ratios per Northern Ireland childcare regulations:
           under 2s 1:3 · 2–3 years 1:4 · 3 years and over 1:8

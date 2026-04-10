@@ -91,7 +91,7 @@ export default function Rooms() {
       )}
 
       <p className="rooms-note">
-        Rooms are configured directly in the database. Contact your system administrator to add or edit rooms.
+        Rooms are configured directly in the database. Contact your resident mog to add or edit rooms.
       </p>
     </div>
   )
