@@ -43,6 +43,13 @@ CREATE TABLE IF NOT EXISTS authorised_pickups (
   name     TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS child_scheduled_days (
+  id          SERIAL PRIMARY KEY,
+  child_id    INTEGER NOT NULL REFERENCES children(id) ON DELETE CASCADE,
+  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 5), -- 1=Mon … 5=Fri
+  UNIQUE (child_id, day_of_week)
+);
+
 CREATE TABLE IF NOT EXISTS attendance (
   id             SERIAL PRIMARY KEY,
   child_id       INTEGER NOT NULL REFERENCES children(id),
@@ -53,8 +60,9 @@ CREATE TABLE IF NOT EXISTS attendance (
 );
 
 -- Useful indexes
-CREATE INDEX IF NOT EXISTS idx_children_active     ON children(is_active);
-CREATE INDEX IF NOT EXISTS idx_attendance_date      ON attendance(date);
-CREATE INDEX IF NOT EXISTS idx_attendance_child     ON attendance(child_id);
-CREATE INDEX IF NOT EXISTS idx_emergency_child      ON emergency_contacts(child_id);
-CREATE INDEX IF NOT EXISTS idx_pickups_child        ON authorised_pickups(child_id);
+CREATE INDEX IF NOT EXISTS idx_children_active       ON children(is_active);
+CREATE INDEX IF NOT EXISTS idx_attendance_date       ON attendance(date);
+CREATE INDEX IF NOT EXISTS idx_attendance_child      ON attendance(child_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_child       ON emergency_contacts(child_id);
+CREATE INDEX IF NOT EXISTS idx_pickups_child         ON authorised_pickups(child_id);
+CREATE INDEX IF NOT EXISTS idx_child_scheduled_days  ON child_scheduled_days(child_id);

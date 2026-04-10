@@ -21,14 +21,13 @@ export default function ChildForm() {
   const isEdit = Boolean(id)
 
   const [form, setForm] = useState(emptyForm)
-  const [rooms, setRooms] = useState([])
+  const [autoRoom, setAutoRoom] = useState(null)
   const [loading, setLoading] = useState(isEdit)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
+  const [capacityWarnings, setCapacityWarnings] = useState([])
 
   useEffect(() => {
-    window.electronAPI.rooms.getAll().then(setRooms)
-
     if (isEdit) {
       window.electronAPI.children
         .getById(Number(id))
@@ -57,7 +56,22 @@ export default function ChildForm() {
 
   // ── Field helpers ────────────────────────────────────────────────────────────
 
-  const set = (field, value) => setForm(f => ({ ...f, [field]: value }))
+  const set = async (field, value) => {
+    setForm(f => ({ ...f, [field]: value }))
+
+    if (field === 'dob' && value) {
+      const room = await window.electronAPI.children.getAutoRoom(value)
+      setAutoRoom(room)
+      if (room) {
+        setForm(f => ({ ...f, dob: value, room_id: room.id }))
+        const result = await window.electronAPI.children.checkRoomCapacity(
+          room.id,
+          isEdit ? Number(id) : null
+        )
+        setCapacityWarnings(result.ok ? [] : result.conflicts)
+      }
+    }
+  }
 
   const setContact = (i, field, value) =>
     setForm(f => {
@@ -147,13 +161,15 @@ export default function ChildForm() {
               />
             </div>
             <div className="form-field">
-              <label>Room</label>
-              <select value={form.room_id} onChange={e => set('room_id', e.target.value)}>
-                <option value="">— Unassigned —</option>
-                {rooms.map(r => (
-                  <option key={r.id} value={r.id}>{r.name}</option>
-                ))}
-              </select>
+              <label>Room (auto-assigned)</label>
+              <div className="auto-room-display">
+                {autoRoom
+                  ? autoRoom.name
+                  : form.room_id
+                    ? <em>Assigned on file</em>
+                    : <em>Enter date of birth to assign</em>
+                }
+              </div>
             </div>
           </div>
         </section>
@@ -238,6 +254,19 @@ export default function ChildForm() {
             + Add person
           </button>
         </section>
+
+        {capacityWarnings.length > 0 && (
+          <div className="form-capacity-warning">
+            <strong>Capacity conflict detected</strong>
+            <p>Placing this child here will block the following mandatory room moves:</p>
+            <ul>
+              {capacityWarnings.map((w, i) => (
+                <li key={i}>{w.reason}</li>
+              ))}
+            </ul>
+            <p>Consider freeing up space before proceeding.</p>
+          </div>
+        )}
 
         <div className="form-actions">
           <button

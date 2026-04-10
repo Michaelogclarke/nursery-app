@@ -42,6 +42,13 @@ CREATE TABLE IF NOT EXISTS authorised_pickups (
   name     TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS child_scheduled_days (
+  id          SERIAL PRIMARY KEY,
+  child_id    INTEGER NOT NULL REFERENCES children(id) ON DELETE CASCADE,
+  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 5), -- 1=Mon … 5=Fri
+  UNIQUE (child_id, day_of_week)
+);
+
 CREATE TABLE IF NOT EXISTS attendance (
   id             SERIAL PRIMARY KEY,
   child_id       INTEGER NOT NULL REFERENCES children(id),
@@ -85,15 +92,16 @@ CREATE TABLE IF NOT EXISTS rota_entries (
 
 -- ── Indexes ───────────────────────────────────────────────────────────────────
 
-CREATE INDEX IF NOT EXISTS idx_children_active    ON children(is_active);
-CREATE INDEX IF NOT EXISTS idx_attendance_date    ON attendance(date);
-CREATE INDEX IF NOT EXISTS idx_attendance_child   ON attendance(child_id);
-CREATE INDEX IF NOT EXISTS idx_emergency_child    ON emergency_contacts(child_id);
-CREATE INDEX IF NOT EXISTS idx_pickups_child      ON authorised_pickups(child_id);
-CREATE INDEX IF NOT EXISTS idx_staff_active       ON staff(is_active);
-CREATE INDEX IF NOT EXISTS idx_rota_date          ON rota_entries(date);
-CREATE INDEX IF NOT EXISTS idx_rota_staff         ON rota_entries(staff_id);
-CREATE INDEX IF NOT EXISTS idx_availability_staff ON staff_availability(staff_id);
+CREATE INDEX IF NOT EXISTS idx_children_active        ON children(is_active);
+CREATE INDEX IF NOT EXISTS idx_attendance_date        ON attendance(date);
+CREATE INDEX IF NOT EXISTS idx_attendance_child       ON attendance(child_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_child        ON emergency_contacts(child_id);
+CREATE INDEX IF NOT EXISTS idx_pickups_child          ON authorised_pickups(child_id);
+CREATE INDEX IF NOT EXISTS idx_staff_active           ON staff(is_active);
+CREATE INDEX IF NOT EXISTS idx_rota_date              ON rota_entries(date);
+CREATE INDEX IF NOT EXISTS idx_rota_staff             ON rota_entries(staff_id);
+CREATE INDEX IF NOT EXISTS idx_availability_staff     ON staff_availability(staff_id);
+CREATE INDEX IF NOT EXISTS idx_child_scheduled_days   ON child_scheduled_days(child_id);
 
 -- ── Seed data — safe to re-run ────────────────────────────────────────────────
 
@@ -103,6 +111,7 @@ TRUNCATE TABLE
   attendance,
   authorised_pickups,
   emergency_contacts,
+  child_scheduled_days,
   children,
   staff_availability,
   staff,
@@ -232,3 +241,27 @@ WHERE c.id % 2 = 0;
 INSERT INTO authorised_pickups (child_id, name)
 SELECT id, first_name || ' ' || last_name || ' (Parent)'
 FROM children;
+
+-- ── Child scheduled days ──────────────────────────────────────────────────────
+-- Nursery is open Mon–Fri only (day_of_week 1–5).
+-- Children are assigned one of four common patterns, rotated across the cohort:
+--   Pattern A (5 days):  Mon Tue Wed Thu Fri   — full week
+--   Pattern B (3 days):  Mon Wed Fri
+--   Pattern C (3 days):  Tue Wed Thu
+--   Pattern D (4 days):  Mon Tue Thu Fri
+
+INSERT INTO child_scheduled_days (child_id, day_of_week)
+SELECT
+  c.id,
+  d.day
+FROM children c
+CROSS JOIN LATERAL (
+  SELECT unnest(
+    CASE ((ROW_NUMBER() OVER (ORDER BY c.id) - 1) % 4)
+      WHEN 0 THEN ARRAY[1,2,3,4,5]   -- Pattern A: full week
+      WHEN 1 THEN ARRAY[1,3,5]       -- Pattern B: Mon/Wed/Fri
+      WHEN 2 THEN ARRAY[2,3,4]       -- Pattern C: Tue/Wed/Thu
+      WHEN 3 THEN ARRAY[1,2,4,5]     -- Pattern D: Mon/Tue/Thu/Fri
+    END
+  ) AS day
+) d;
