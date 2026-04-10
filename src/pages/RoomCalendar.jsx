@@ -40,6 +40,9 @@ function fmtMonthYear(date) {
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri']
 
+const TODAY_MONDAY = getMonday(new Date())
+const MAX_WEEKS_AHEAD = 104  // 2 years
+
 export default function RoomCalendar() {
   const navigate = useNavigate()
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()))
@@ -49,12 +52,18 @@ export default function RoomCalendar() {
   const [error, setError]         = useState(null)
 
   // Panel state
-  const [panel, setPanel]           = useState(null)   // { date, roomId, roomName }
+  const [panel, setPanel]           = useState(null)
   const [panelKids, setPanelKids]   = useState([])
   const [panelLoading, setPanelLoading] = useState(false)
 
   const windowStart = fmt(weekStart)
   const windowEnd   = fmt(addDays(weekStart, 27))
+
+  // How many weeks ahead is the current view from today's Monday
+  const weeksAhead = Math.round((weekStart - TODAY_MONDAY) / (7 * 24 * 60 * 60 * 1000))
+
+  // Next 4 weeks would land at weeksAhead + 4 — cap at MAX_WEEKS_AHEAD
+  const canGoForward = weeksAhead + 4 <= MAX_WEEKS_AHEAD
 
   useEffect(() => {
     setLoading(true)
@@ -81,7 +90,7 @@ export default function RoomCalendar() {
   const closePanel = () => setPanel(null)
 
   const prevMonth = () => setWeekStart(w => addDays(w, -28))
-  const nextMonth = () => setWeekStart(w => addDays(w, 28))
+  const nextMonth = () => { if (canGoForward) setWeekStart(w => addDays(w, 28)) }
   const goToday   = () => setWeekStart(getMonday(new Date()))
 
   const weeks = []
@@ -102,14 +111,24 @@ export default function RoomCalendar() {
       <div className="page-header">
         <h2 className="page-title">Room Calendar</h2>
         <div className="cal-nav">
-          <button className="btn-secondary" onClick={prevMonth}>← Back 4 weeks</button>
+          <button className="btn-secondary" onClick={prevMonth} disabled={weeksAhead <= 0}>
+            ← Back 4 weeks
+          </button>
           <button className="btn-secondary" onClick={goToday}>Today</button>
-          <button className="btn-secondary" onClick={nextMonth}>Next 4 weeks →</button>
+          <button className="btn-secondary" onClick={nextMonth} disabled={!canGoForward}>
+            Next 4 weeks →
+          </button>
         </div>
       </div>
 
       <p className="cal-range-label">
         {fmtMonthYear(weekStart)} — {fmtMonthYear(addDays(weekStart, 27))}
+        {weeksAhead > 0 && (
+          <span className="cal-weeks-ahead">
+            {weeksAhead} week{weeksAhead !== 1 ? 's' : ''} ahead
+            {!canGoForward && ' — 2 year limit reached'}
+          </span>
+        )}
       </p>
 
       {loading && <p className="state-msg">Loading…</p>}

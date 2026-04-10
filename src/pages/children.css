@@ -78,6 +78,35 @@
 .btn-move:hover { background: #d97706; color: #fff; }
 .btn-move:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.day-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.day-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f4f6f9;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.day-btn:hover { background: #e8edf3; }
+.day-btn--active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.day-picker-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
 .auto-room-display {
   padding: 8px 12px;
   background: #f4f6f9;

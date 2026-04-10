@@ -4,11 +4,21 @@ import './children.css'
 
 const emptyContact = (priority) => ({ name: '', relationship: '', phone: '', priority })
 
+const DAYS = [
+  { value: 1, label: 'Mon' },
+  { value: 2, label: 'Tue' },
+  { value: 3, label: 'Wed' },
+  { value: 4, label: 'Thu' },
+  { value: 5, label: 'Fri' },
+]
+
 const emptyForm = {
   first_name: '',
   last_name: '',
   dob: '',
+  start_date: '',
   room_id: '',
+  scheduled_days: [],
   allergies: '',
   medical_notes: '',
   emergency_contacts: [emptyContact(1), emptyContact(2)],
@@ -39,7 +49,9 @@ export default function ChildForm() {
             first_name: child.first_name,
             last_name:  child.last_name,
             dob:        child.dob ? child.dob.toString().slice(0, 10) : '',
-            room_id:    child.room_id ?? '',
+            room_id:        child.room_id ?? '',
+            start_date:     child.start_date ? child.start_date.toString().slice(0, 10) : '',
+            scheduled_days: child.scheduled_days || [],
             allergies:      child.allergies      || '',
             medical_notes:  child.medical_notes  || '',
             emergency_contacts: [
@@ -62,30 +74,49 @@ export default function ChildForm() {
   const set = async (field, value) => {
     setForm(f => ({ ...f, [field]: value }))
 
-    if (field === 'dob' && value) {
-      const room = await window.electronAPI.children.getAutoRoom(value)
-      setAutoRoom(room)
+    if (field === 'dob' || field === 'start_date') {
+      const dob        = field === 'dob'        ? value : form.dob
+      const start_date = field === 'start_date' ? value : form.start_date
+      if (!dob) return
+
+      setAutoRoom(null)
       setRoomBlocked(null)
       setCapacityWarnings([])
       setOverrideInput('')
       setOverrideConfirmed(false)
-      if (room) {
-        setForm(f => ({ ...f, dob: value, room_id: room.id }))
-        const result = await window.electronAPI.children.checkRoomCapacity(
-          room.id,
-          isEdit ? Number(id) : null
-        )
-        if (!result.ok) {
-          const hard = result.conflicts.find(c => c.reason === 'Room is already at capacity')
-          if (hard) {
-            setRoomBlocked(`${room.name} is currently full and cannot accept any more children.`)
-          } else {
-            setCapacityWarnings(result.conflicts)
-          }
+
+      const room = await window.electronAPI.children.getAutoRoom(dob, start_date || null)
+
+      if (!room || room.ineligible) {
+        setRoomBlocked(room?.reason || 'Unable to assign a room for this child.')
+        return
+      }
+
+      setAutoRoom(room)
+      setForm(f => ({ ...f, [field]: value, room_id: room.id }))
+
+      const result = await window.electronAPI.children.checkRoomCapacity(
+        room.id,
+        isEdit ? Number(id) : null
+      )
+      if (!result.ok) {
+        const hard = result.conflicts.find(c => c.reason === 'Room is already at capacity')
+        if (hard) {
+          setRoomBlocked(`${room.name} is currently full and cannot accept any more children.`)
+        } else {
+          setCapacityWarnings(result.conflicts)
         }
       }
     }
   }
+
+  const toggleDay = (day) =>
+    setForm(f => ({
+      ...f,
+      scheduled_days: f.scheduled_days.includes(day)
+        ? f.scheduled_days.filter(d => d !== day)
+        : [...f.scheduled_days, day].sort(),
+    }))
 
   const setContact = (i, field, value) =>
     setForm(f => {
@@ -112,12 +143,14 @@ export default function ChildForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (roomBlocked && !overrideConfirmed) return
+    if (form.scheduled_days.length === 0) { setError('Please select at least one attendance day.'); return }
     setSaving(true)
     setError(null)
     try {
       const data = {
         ...form,
-        room_id: form.room_id || null,
+        room_id:    form.room_id    || null,
+        start_date: form.start_date || null,
       }
       if (isEdit) {
         await window.electronAPI.children.update(Number(id), data)
@@ -176,17 +209,48 @@ export default function ChildForm() {
               />
             </div>
             <div className="form-field">
-              <label>Room (auto-assigned)</label>
+              <label>Start date <span className="req">*</span></label>
+              <input
+                type="date"
+                required
+                value={form.start_date}
+                onChange={e => set('start_date', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-field">
+              <label>Room (auto-assigned from start date)</label>
               <div className="auto-room-display">
                 {autoRoom
                   ? autoRoom.name
                   : form.room_id
                     ? <em>Assigned on file</em>
-                    : <em>Enter date of birth to assign</em>
+                    : <em>Enter date of birth and start date to assign</em>
                 }
               </div>
             </div>
           </div>
+        </section>
+
+        {/* ── Attendance days ──────────────────────────────────────────────── */}
+        <section className="form-section">
+          <h3 className="form-section-title">Attendance Days <span className="req">*</span></h3>
+          <div className="day-picker">
+            {DAYS.map(d => (
+              <button
+                key={d.value}
+                type="button"
+                className={`day-btn${form.scheduled_days.includes(d.value) ? ' day-btn--active' : ''}`}
+                onClick={() => toggleDay(d.value)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
+          {form.scheduled_days.length === 0 && (
+            <p className="day-picker-hint">Select at least one day.</p>
+          )}
         </section>
 
         {/* ── Medical ──────────────────────────────────────────────────────── */}

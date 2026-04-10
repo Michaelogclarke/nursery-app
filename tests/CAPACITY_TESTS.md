@@ -145,13 +145,34 @@ npm run setup
 
 ## Quick Reference
 
-| Scenario | DOB to enter | Room assigned | Expected outcome |
-|----------|-------------|---------------|-----------------|
-| 1 — Room full | `2025-06-01` | Babies | Red hard block, override required |
-| 2 — Grace period | *(existing child)* | Babies | Move button in Children list |
-| 3 — Future conflict | `2023-08-01` | Toddlers | Yellow warning, save still allowed |
-| 4 — After School | *(calendar view)* | Pre-School → After School | Correct room from Sep 2026 |
-| 5 — Leaver frees space | `2023-09-01` | Toddlers | No warning, clean save |
+| Scenario | DOB to enter | Start date to enter | Room assigned | Expected outcome |
+|----------|-------------|---------------------|---------------|-----------------|
+| 1 — Room full | `2025-06-01` | `2026-04-10` or later | Babies | Red hard block, override required |
+| 2 — Grace period | *(existing child)* | *(existing)* | Babies | Move button in Children list |
+| 3 — Future conflict | `2023-08-01` | `2026-04-10` | Toddlers | Yellow warning, save still allowed |
+| 4 — After School | *(calendar view)* | *(existing)* | Pre-School → After School | Correct room from Sep 2026 |
+| 5 — Leaver frees space | `2023-09-01` | `2026-04-10` | Toddlers | No warning, clean save |
+| Start date check | `2025-06-01` | `2025-05-01` (before DOB) | — | Red block: child not yet born by start date |
+
+---
+
+---
+
+## Scenario 6 — Start Date: Child Not Yet Born
+
+**What it tests:** If the start date entered is before the child's DOB, the system should block the placement entirely.
+
+**Steps:**
+1. Navigate to **Children → Add Child**
+2. Enter any name, e.g. `Future Child`
+3. Enter DOB `2026-06-01`
+4. Enter start date `2026-05-01` (one month before DOB)
+
+**Expected:**
+- Red notification appears: *"The child has not yet been born by the chosen start date"*
+- No room is assigned
+- Save button is disabled
+- Correcting the start date to `2026-07-01` (after DOB) clears the block and assigns Babies
 
 ---
 

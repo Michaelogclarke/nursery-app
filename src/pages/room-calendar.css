@@ -18,6 +18,18 @@
   font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cal-weeks-ahead {
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .cal-wrapper {

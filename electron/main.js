@@ -72,7 +72,7 @@ ipcMain.handle('children:getAll', async () => {
 
 ipcMain.handle('children:getById', async (_event, id) => {
   const p = getPool()
-  const [child, contacts, pickups] = await Promise.all([
+  const [child, contacts, pickups, days] = await Promise.all([
     p.query(
       `SELECT c.*, r.name AS room_name
        FROM children c
@@ -88,26 +88,31 @@ ipcMain.handle('children:getById', async (_event, id) => {
       'SELECT * FROM authorised_pickups WHERE child_id = $1 ORDER BY id',
       [id]
     ),
+    p.query(
+      'SELECT day_of_week FROM child_scheduled_days WHERE child_id = $1 ORDER BY day_of_week',
+      [id]
+    ),
   ])
   if (!child.rows[0]) throw new Error('Child not found')
   return {
     ...child.rows[0],
     emergency_contacts: contacts.rows,
     authorised_pickups: pickups.rows,
+    scheduled_days: days.rows.map(r => r.day_of_week),
   }
 })
 
 ipcMain.handle('children:add', async (_event, data) => {
-  const { first_name, last_name, dob, room_id, allergies, medical_notes,
-          emergency_contacts, authorised_pickups } = data
+  const { first_name, last_name, dob, start_date, room_id, allergies, medical_notes,
+          emergency_contacts, authorised_pickups, scheduled_days } = data
   const client = await getPool().connect()
   try {
     await client.query('BEGIN')
 
     const { rows } = await client.query(
-      `INSERT INTO children (first_name, last_name, dob, room_id, allergies, medical_notes)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
-      [first_name, last_name, dob, room_id || null, allergies || null, medical_notes || null]
+      `INSERT INTO children (first_name, last_name, dob, start_date, room_id, allergies, medical_notes)
+       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id`,
+      [first_name, last_name, dob, start_date || null, room_id || null, allergies || null, medical_notes || null]
     )
     const childId = rows[0].id
 
@@ -128,6 +133,12 @@ ipcMain.handle('children:add', async (_event, data) => {
         )
       }
     }
+    for (const day of (scheduled_days || [])) {
+      await client.query(
+        'INSERT INTO child_scheduled_days (child_id, day_of_week) VALUES ($1,$2)',
+        [childId, day]
+      )
+    }
 
     await client.query('COMMIT')
     return childId
@@ -140,21 +151,22 @@ ipcMain.handle('children:add', async (_event, data) => {
 })
 
 ipcMain.handle('children:update', async (_event, id, data) => {
-  const { first_name, last_name, dob, room_id, allergies, medical_notes,
-          emergency_contacts, authorised_pickups } = data
+  const { first_name, last_name, dob, start_date, room_id, allergies, medical_notes,
+          emergency_contacts, authorised_pickups, scheduled_days } = data
   const client = await getPool().connect()
   try {
     await client.query('BEGIN')
 
     await client.query(
       `UPDATE children
-       SET first_name=$1, last_name=$2, dob=$3, room_id=$4, allergies=$5, medical_notes=$6
-       WHERE id=$7`,
-      [first_name, last_name, dob, room_id || null, allergies || null, medical_notes || null, id]
+       SET first_name=$1, last_name=$2, dob=$3, start_date=$4, room_id=$5, allergies=$6, medical_notes=$7
+       WHERE id=$8`,
+      [first_name, last_name, dob, start_date || null, room_id || null, allergies || null, medical_notes || null, id]
     )
 
     await client.query('DELETE FROM emergency_contacts WHERE child_id=$1', [id])
     await client.query('DELETE FROM authorised_pickups WHERE child_id=$1', [id])
+    await client.query('DELETE FROM child_scheduled_days WHERE child_id=$1', [id])
 
     for (const c of emergency_contacts) {
       if (c.name.trim()) {
@@ -172,6 +184,12 @@ ipcMain.handle('children:update', async (_event, id, data) => {
           [id, p.name]
         )
       }
+    }
+    for (const day of (scheduled_days || [])) {
+      await client.query(
+        'INSERT INTO child_scheduled_days (child_id, day_of_week) VALUES ($1,$2)',
+        [id, day]
+      )
     }
 
     await client.query('COMMIT')
@@ -348,13 +366,21 @@ ipcMain.handle('rota:unassign', async (_event, entryId) => {
 // Pre-School:  3  – under 4 (or 4+ but missed After School cutoff)
 // After School: turned 4 on/before July 1, from Sep 1 of that year
 
-ipcMain.handle('children:getAutoRoom', async (_event, dob) => {
-  const birth = new Date(dob)
-  const today = new Date()
+ipcMain.handle('children:getAutoRoom', async (_event, dob, startDate) => {
+  const birth = new Date(dob + 'T12:00:00')
+  // Use start date if provided, otherwise fall back to today
+  const referenceDate = startDate
+    ? new Date(startDate + 'T12:00:00')
+    : new Date()
+
+  // Child must be born on or before their start date
+  if (birth > referenceDate) {
+    return { ineligible: true, reason: 'The child has not yet been born by the chosen start date.' }
+  }
 
   const ageInMonths =
-    (today.getFullYear() - birth.getFullYear()) * 12 +
-    (today.getMonth() - birth.getMonth())
+    (referenceDate.getFullYear() - birth.getFullYear()) * 12 +
+    (referenceDate.getMonth() - birth.getMonth())
 
   const ageYears = ageInMonths / 12
 
@@ -368,11 +394,11 @@ ipcMain.handle('children:getAutoRoom', async (_event, dob) => {
   } else {
     // Check After School eligibility: turned 4 on/before July 1, and Sep 1 has passed
     const yearTheyTurn4 = birth.getFullYear() + 4
-    const cutoff  = new Date(yearTheyTurn4, 6, 1)   // July 1
-    const sepDate = new Date(yearTheyTurn4, 8, 1)   // Sep 1
+    const cutoff    = new Date(yearTheyTurn4, 6, 1)
+    const sepDate   = new Date(yearTheyTurn4, 8, 1)
     const birthday4 = new Date(yearTheyTurn4, birth.getMonth(), birth.getDate())
 
-    if (birthday4 <= cutoff && today >= sepDate) {
+    if (birthday4 <= cutoff && referenceDate >= sepDate) {
       roomName = 'After School'
     } else {
       roomName = 'Pre-School'

@@ -32,7 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     update:              (id, data)         => ipcRenderer.invoke('children:update', id, data),
     deactivate:          (id)               => ipcRenderer.invoke('children:deactivate', id),
     checkRoomCapacity:   (roomId, childId)  => ipcRenderer.invoke('children:checkRoomCapacity', roomId, childId),
-    getAutoRoom:         (dob)              => ipcRenderer.invoke('children:getAutoRoom', dob),
+    getAutoRoom:         (dob, startDate)   => ipcRenderer.invoke('children:getAutoRoom', dob, startDate),
     getGraceEligible:    ()                 => ipcRenderer.invoke('children:getGraceEligible'),
     moveToRoom:          (childId, roomId)  => ipcRenderer.invoke('children:moveToRoom', childId, roomId),
   },

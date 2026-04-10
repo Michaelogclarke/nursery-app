@@ -46,69 +46,66 @@ CROSS JOIN (VALUES (1),(2),(3),(4),(5)) AS d(day);
 -- All DOBs clearly under 2 as of 2026-04-10.
 -- When staff tries to add a 13th baby (DOB 2025-06-01) the hard block fires.
 
-INSERT INTO children (first_name, last_name, dob, room_id, is_active)
+-- start_date rules:
+--   Existing children (already attending) → past start date, before or on today
+--   FutureMove Baby → future start date (2026-05-01) to verify room assigned at that date
+--   AfterSchool children → started before Sep 2026 so they are in Pre-School today
+
+INSERT INTO children (first_name, last_name, dob, start_date, room_id, is_active)
 VALUES
-  ('Baby01', 'Test', '2025-01-05', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby02', 'Test', '2025-02-10', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby03', 'Test', '2025-03-15', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby04', 'Test', '2025-04-20', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby05', 'Test', '2025-05-25', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby06', 'Test', '2025-06-30', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby07', 'Test', '2025-07-04', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby08', 'Test', '2025-08-08', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby09', 'Test', '2025-09-12', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby10', 'Test', '2025-10-16', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby11', 'Test', '2025-11-20', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-  ('Baby12', 'Test', '2025-12-24', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  -- SCENARIO 1: Babies full (12/12) — all already attending, start dates in the past
+  ('Baby01', 'Test', '2025-01-05', '2025-02-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby02', 'Test', '2025-02-10', '2025-03-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby03', 'Test', '2025-03-15', '2025-04-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby04', 'Test', '2025-04-20', '2025-05-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby05', 'Test', '2025-05-25', '2025-06-15', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby06', 'Test', '2025-06-30', '2025-08-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby07', 'Test', '2025-07-04', '2025-08-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby08', 'Test', '2025-08-08', '2025-09-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby09', 'Test', '2025-09-12', '2025-10-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby10', 'Test', '2025-10-16', '2025-11-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby11', 'Test', '2025-11-20', '2025-12-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  ('Baby12', 'Test', '2025-12-24', '2026-01-15', (SELECT id FROM rooms WHERE name = 'Babies'), true),
 
--- SCENARIO 2: Grace period child
--- DOB 2024-02-01 → turned 2 on 2026-02-01 (2 months ago).
--- Grace window: 2026-02-01 → 2026-06-01 (4 months).
--- Today (2026-04-10) is inside the window → Move to Toddlers button should appear.
+  -- SCENARIO 2: Grace period child
+  -- DOB 2024-02-01 → turned 2 on 2026-02-01 (2 months ago).
+  -- Grace window: 2026-02-01 → 2026-06-01. Today (2026-04-10) is inside.
+  -- start_date is in the past — child has been attending since they were under 2.
+  ('Grace', 'Child', '2024-02-01', '2024-03-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
 
-  ('Grace', 'Child', '2024-02-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
+  -- SCENARIO 3 & 5: Toddlers near-full (19/20) — all already attending
+  ('Tod01', 'Test', '2023-05-01', '2025-05-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod02', 'Test', '2023-06-01', '2025-06-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod03', 'Test', '2023-07-01', '2025-07-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod04', 'Test', '2023-08-01', '2025-08-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod05', 'Test', '2023-09-01', '2025-09-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod06', 'Test', '2023-10-01', '2025-10-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod07', 'Test', '2023-11-01', '2025-11-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod08', 'Test', '2023-12-01', '2025-12-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod09', 'Test', '2024-01-01', '2026-01-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod10', 'Test', '2023-05-15', '2025-05-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod11', 'Test', '2023-06-15', '2025-06-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod12', 'Test', '2023-07-15', '2025-07-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod13', 'Test', '2023-08-15', '2025-08-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod14', 'Test', '2023-09-15', '2025-09-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod15', 'Test', '2023-10-15', '2025-10-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod16', 'Test', '2023-11-15', '2025-11-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod17', 'Test', '2023-12-15', '2025-12-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  ('Tod18', 'Test', '2024-01-15', '2026-01-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
+  -- Scenario 5 leaver: turns 3 today, start_date in the past
+  ('Tod19', 'Leaver', '2023-04-10', '2025-04-10', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
 
--- SCENARIO 3: Toddlers near-full (19/20) + a Babies child whose hard move is within 2 years
--- 19 Toddler-age children (born 2023-05-01 to 2024-01-01, all aged 2–3 today).
--- Adding a 20th Toddler-age child should trigger the future conflict warning because
--- the Babies child below (DOB 2024-04-10) has a hard move deadline of 2026-08-10,
--- within the 2-year horizon, and the room would be full at that point.
+  -- FutureMove Baby: DOB 2024-04-10, start_date 2026-05-01 (future).
+  -- At start date they will be 2y 0m → auto-assigned to Babies is correct.
+  -- Hard move deadline into Toddlers: 2026-08-10. Tests scenario 3 conflict warning.
+  ('FutureMove', 'Baby', '2024-04-10', '2026-05-01', (SELECT id FROM rooms WHERE name = 'Babies'), true),
 
-  ('Tod01', 'Test', '2023-05-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod02', 'Test', '2023-06-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod03', 'Test', '2023-07-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod04', 'Test', '2023-08-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod05', 'Test', '2023-09-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod06', 'Test', '2023-10-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod07', 'Test', '2023-11-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod08', 'Test', '2023-12-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod09', 'Test', '2024-01-01', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod10', 'Test', '2023-05-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod11', 'Test', '2023-06-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod12', 'Test', '2023-07-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod13', 'Test', '2023-08-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod14', 'Test', '2023-09-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod15', 'Test', '2023-10-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod16', 'Test', '2023-11-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod17', 'Test', '2023-12-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  ('Tod18', 'Test', '2024-01-15', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-  -- Scenario 5 leaver: born 2023-04-10, turns 3 today (2026-04-10).
-  -- Grace window: 2026-04-10 → 2026-08-10. Will leave Toddlers before Sep.
-  ('Tod19', 'Leaver', '2023-04-10', (SELECT id FROM rooms WHERE name = 'Toddlers'), true),
-
-  -- The Babies child whose hard move into Toddlers is 2026-08-10 (scenario 3 trigger).
-  -- Also the child whose arrival is AFTER Tod19 leaves, so scenario 5 shows no conflict.
-  ('FutureMove', 'Baby', '2024-04-10', (SELECT id FROM rooms WHERE name = 'Babies'), true),
-
--- SCENARIO 4: After School cutoff
--- Child A (DOB 2022-05-15): turns 4 on 2026-05-15, before Jul 1 cutoff → eligible.
---   From Sep 1 2026 they should appear in After School on the calendar.
--- Child B (DOB 2022-08-20): turns 4 on 2026-08-20, after Jul 1 cutoff → stays Pre-School.
---   Sep 1 2026 calendar should still show them in Pre-School.
--- Both are currently 3y+ so they sit in Pre-School today.
-
-  ('AfterSchool', 'Eligible',    '2022-05-15', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('AfterSchool', 'Ineligible',  '2022-08-20', (SELECT id FROM rooms WHERE name = 'Pre-School'), true);
+  -- SCENARIO 4: After School cutoff
+  -- Both started before Sep 2026 so they are in Pre-School on their start date.
+  -- Child A (DOB 2022-05-15): eligible — turns 4 before Jul 1 cutoff, moves Sep 1 2026.
+  -- Child B (DOB 2022-08-20): ineligible — turns 4 after Jul 1 cutoff, stays Pre-School.
+  ('AfterSchool', 'Eligible',   '2022-05-15', '2025-05-15', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
+  ('AfterSchool', 'Ineligible', '2022-08-20', '2025-08-20', (SELECT id FROM rooms WHERE name = 'Pre-School'), true);
 
 -- ── Scheduled days — Mon / Wed / Fri for all test children ───────────────────
 

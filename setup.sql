@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS children (
   first_name    TEXT NOT NULL,
   last_name     TEXT NOT NULL,
   dob           DATE NOT NULL,
+  start_date    DATE,
   room_id       INTEGER REFERENCES rooms(id),
   allergies     TEXT,
   medical_notes TEXT,
