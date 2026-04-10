@@ -30,9 +30,16 @@
 
 .room-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.room-card-flags {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
 }
 
 .room-name {
@@ -53,8 +60,9 @@
   letter-spacing: 0.04em;
 }
 
-.capacity-flag--over { background: #fee2e2; color: #dc2626; }
-.capacity-flag--at   { background: #fef3c7; color: #92400e; }
+.capacity-flag--over  { background: #fee2e2; color: #dc2626; }
+.capacity-flag--at    { background: #fef3c7; color: #92400e; }
+.capacity-flag--ratio { background: #fee2e2; color: #dc2626; }
 
 /* ── Count ───────────────────────────────────────────────────────────────────── */
 
@@ -93,10 +101,26 @@
 
 /* ── Footer ──────────────────────────────────────────────────────────────────── */
 
+.room-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .room-footer-text {
   font-size: 13px;
   color: var(--text-muted);
 }
+
+.ratio-indicator {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.ratio-indicator--ok   { background: #dcfce7; color: #15803d; }
+.ratio-indicator--fail { background: #fee2e2; color: #dc2626; }
 
 /* ── Note ────────────────────────────────────────────────────────────────────── */
 

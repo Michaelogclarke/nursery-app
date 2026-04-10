@@ -1,0 +1,155 @@
+/* ── Staff list ──────────────────────────────────────────────────────────────── */
+
+.staff-list {
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.staff-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+.staff-row:last-child { border-bottom: none; }
+.staff-row:hover { background: #f8fafc; }
+
+.staff-row-left { display: flex; flex-direction: column; gap: 2px; }
+
+.staff-row-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.staff-row-title {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.staff-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── Access NI status badge ──────────────────────────────────────────────────── */
+
+.ni-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.ni-status--clear   { background: #dcfce7; color: #15803d; }
+.ni-status--pending { background: #fef3c7; color: #92400e; }
+.ni-status--expired { background: #fee2e2; color: #dc2626; }
+
+/* ── Access NI warning badge (list) ─────────────────────────────────────────── */
+
+.ani-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.ani-badge--expired  { background: #fee2e2; color: #dc2626; }
+.ani-badge--expiring { background: #fef3c7; color: #92400e; }
+
+/* ── Access NI alert (profile) ───────────────────────────────────────────────── */
+
+.staff-profile-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.ani-alert {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.ani-alert--expired  { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+.ani-alert--expiring { background: #fffbeb; color: #92400e; border-color: #fcd34d; }
+
+/* ── Availability display (profile) ─────────────────────────────────────────── */
+
+.availability-display {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-chip {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.day-chip--active  { background: #dbeafe; color: #1d4ed8; }
+.day-chip--inactive { background: #f1f5f9; color: #94a3b8; }
+
+/* ── Availability checkboxes (form) ─────────────────────────────────────────── */
+
+.form-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.availability-checkboxes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-checkbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s;
+}
+
+.day-checkbox input { display: none; }
+
+.day-checkbox:hover { border-color: #93c5fd; color: var(--text-primary); }
+
+.day-checkbox--checked {
+  background: #dbeafe;
+  border-color: #3b82f6;
+  color: #1d4ed8;
+}
+
+/* ── Profile section wide variant ───────────────────────────────────────────── */
+
+.profile-section--wide {
+  grid-column: 1 / -1;
+}

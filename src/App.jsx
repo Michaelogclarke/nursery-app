@@ -5,6 +5,10 @@ import ChildProfile from './pages/ChildProfile.jsx'
 import ChildForm from './pages/ChildForm.jsx'
 import Attendance from './pages/Attendance.jsx'
 import Rooms from './pages/Rooms.jsx'
+import Staff from './pages/Staff.jsx'
+import StaffProfile from './pages/StaffProfile.jsx'
+import StaffForm from './pages/StaffForm.jsx'
+import Rota from './pages/Rota.jsx'
 import './App.css'
 
 export default function App() {
@@ -21,6 +25,11 @@ export default function App() {
             <Route path="/children/:id/edit" element={<ChildForm />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/rooms" element={<Rooms />} />
+            <Route path="/staff" element={<Staff />} />
+            <Route path="/staff/new" element={<StaffForm />} />
+            <Route path="/staff/:id" element={<StaffProfile />} />
+            <Route path="/staff/:id/edit" element={<StaffForm />} />
+            <Route path="/rota" element={<Rota />} />
           </Routes>
         </main>
       </div>

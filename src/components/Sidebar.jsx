@@ -5,6 +5,8 @@ const navItems = [
   { to: '/children', label: 'Children' },
   { to: '/attendance', label: 'Attendance' },
   { to: '/rooms', label: 'Rooms' },
+  { to: '/staff', label: 'Staff' },
+  { to: '/rota', label: 'Rota' },
 ]
 
 export default function Sidebar() {

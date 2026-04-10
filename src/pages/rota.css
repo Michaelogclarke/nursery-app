@@ -1,0 +1,193 @@
+.page--wide {
+  max-width: 100%;
+  padding: 32px;
+}
+
+/* ── Scroll wrapper ───────────────────────────────────────────────────────────── */
+
+.rota-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  margin-bottom: 16px;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────────────── */
+
+.rota-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────────── */
+
+.rota-th-shift {
+  width: 140px;
+  min-width: 140px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  border-right: 2px solid var(--border);
+}
+
+.rota-th-room {
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  padding: 12px 16px;
+  text-align: left;
+  vertical-align: top;
+  min-width: 180px;
+}
+.rota-th-room:last-child { border-right: none; }
+
+.room-header-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.room-header-age {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.room-header-ratio {
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 6px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.ratio--ok           { background: #dcfce7; color: #15803d; }
+.ratio--insufficient { background: #fee2e2; color: #dc2626; }
+
+/* ── Shift column ─────────────────────────────────────────────────────────────── */
+
+.rota-td-shift {
+  background: #f8fafc;
+  border-right: 2px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px;
+  vertical-align: top;
+}
+
+.rota-td-shift:last-child { border-bottom: none; }
+
+.shift-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.shift-hours {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Cell ─────────────────────────────────────────────────────────────────────── */
+
+.rota-td-cell {
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 12px;
+  vertical-align: top;
+  min-width: 180px;
+}
+.rota-td-cell:last-child  { border-right: none; }
+.rota-td-cell--warning    { background: #fff5f5; }
+
+.rota-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Assignment chip ──────────────────────────────────────────────────────────── */
+
+.rota-assignment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 13px;
+  color: #1d4ed8;
+}
+
+.btn-unassign {
+  background: none;
+  border: none;
+  color: #93c5fd;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  flex-shrink: 0;
+}
+.btn-unassign:hover { color: #dc2626; }
+
+/* ── Assign button / dropdown ─────────────────────────────────────────────────── */
+
+.btn-assign {
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 5px 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.1s, color 0.1s;
+}
+.btn-assign:hover { border-color: #3b82f6; color: #3b82f6; }
+
+.assign-dropdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.assign-dropdown select {
+  width: 100%;
+  padding: 5px 8px;
+  border: 1px solid #3b82f6;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+}
+
+.assign-loading {
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px;
+}
+
+.btn-cancel-assign {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+.btn-cancel-assign:hover { color: var(--text-primary); }
+
+/* ── Footer note ──────────────────────────────────────────────────────────────── */
+
+.rota-ratio-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
