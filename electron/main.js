@@ -34,6 +34,23 @@ ipcMain.handle('rooms:getAll', async () => {
   return rows
 })
 
+ipcMain.handle('rooms:getWithOccupancy', async () => {
+  const { rows } = await getPool().query(`
+    SELECT r.id, r.name, r.max_capacity,
+           COUNT(a.id) AS current_count
+    FROM rooms r
+    LEFT JOIN children c ON c.room_id = r.id AND c.is_active = true
+    LEFT JOIN attendance a
+      ON a.child_id = c.id
+      AND a.date = CURRENT_DATE
+      AND a.checked_in_at IS NOT NULL
+      AND a.checked_out_at IS NULL
+    GROUP BY r.id, r.name, r.max_capacity
+    ORDER BY r.name
+  `)
+  return rows.map(r => ({ ...r, current_count: Number(r.current_count) }))
+})
+
 // ── Children ──────────────────────────────────────────────────────────────────
 
 ipcMain.handle('children:getAll', async () => {
@@ -163,6 +180,37 @@ ipcMain.handle('children:update', async (_event, id, data) => {
 
 ipcMain.handle('children:deactivate', async (_event, id) => {
   await getPool().query('UPDATE children SET is_active=false WHERE id=$1', [id])
+})
+
+// ── Attendance ────────────────────────────────────────────────────────────────
+
+ipcMain.handle('attendance:getByDate', async (_event, date) => {
+  const { rows } = await getPool().query(`
+    SELECT c.id, c.first_name, c.last_name,
+           r.name AS room_name,
+           a.checked_in_at, a.checked_out_at
+    FROM children c
+    LEFT JOIN rooms r ON c.room_id = r.id
+    LEFT JOIN attendance a ON a.child_id = c.id AND a.date = $1
+    WHERE c.is_active = true
+    ORDER BY c.last_name, c.first_name
+  `, [date])
+  return rows
+})
+
+ipcMain.handle('attendance:checkIn', async (_event, childId, date) => {
+  await getPool().query(`
+    INSERT INTO attendance (child_id, date, checked_in_at)
+    VALUES ($1, $2, NOW())
+    ON CONFLICT (child_id, date) DO UPDATE SET checked_in_at = NOW()
+  `, [childId, date])
+})
+
+ipcMain.handle('attendance:checkOut', async (_event, childId, date) => {
+  await getPool().query(`
+    UPDATE attendance SET checked_out_at = NOW()
+    WHERE child_id = $1 AND date = $2
+  `, [childId, date])
 })
 
 // ── Window ────────────────────────────────────────────────────────────────────
