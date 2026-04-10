@@ -9,6 +9,7 @@ import Staff from './pages/Staff.jsx'
 import StaffProfile from './pages/StaffProfile.jsx'
 import StaffForm from './pages/StaffForm.jsx'
 import Rota from './pages/Rota.jsx'
+import Forms from './pages/Forms.jsx'
 import './App.css'
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="/staff/:id" element={<StaffProfile />} />
             <Route path="/staff/:id/edit" element={<StaffForm />} />
             <Route path="/rota" element={<Rota />} />
+            <Route path="/forms" element={<Forms />} />
           </Routes>
         </main>
       </div>
