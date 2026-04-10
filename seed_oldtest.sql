@@ -7,7 +7,6 @@
 --   3. Toddlers near-full + future hard mover from Babies → future conflict warning
 --   4. After School cutoff          → calendar shows correct room from Sep 2026
 --   5. Leaver frees space           → no conflict despite near-full Toddlers
---   6. Pre-School at new capacity (16/16) — no Toddler ages in within 2 yrs → no conflict
 --
 -- Usage:
 --   npm run seed:test
@@ -106,26 +105,7 @@ VALUES
   -- Child A (DOB 2022-05-15): eligible — turns 4 before Jul 1 cutoff, moves Sep 1 2026.
   -- Child B (DOB 2022-08-20): ineligible — turns 4 after Jul 1 cutoff, stays Pre-School.
   ('AfterSchool', 'Eligible',   '2022-05-15', '2025-05-15', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('AfterSchool', 'Ineligible', '2022-08-20', '2025-08-20', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-
-  -- SCENARIO 6: Pre-School at new capacity (16/16) — reduced from 20.
-  -- AfterSchool Eligible leaves Sep 2026, freeing a space before any Toddler ages in.
-  -- No Toddler turns 3 within 2 years of today (2028-04-10), so no over-capacity warning fires.
-  -- This verifies the capacity reduction is correctly reflected without triggering conflicts.
-  ('PS01', 'Test', '2021-09-01', '2024-09-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS02', 'Test', '2021-10-01', '2024-10-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS03', 'Test', '2021-11-01', '2024-11-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS04', 'Test', '2021-12-01', '2024-12-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS05', 'Test', '2022-01-01', '2025-01-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS06', 'Test', '2022-02-01', '2025-02-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS07', 'Test', '2022-03-01', '2025-03-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS08', 'Test', '2022-04-01', '2025-04-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS09', 'Test', '2022-05-01', '2025-05-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS10', 'Test', '2022-06-01', '2025-06-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS11', 'Test', '2022-07-01', '2025-07-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS12', 'Test', '2022-08-01', '2025-08-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS13', 'Test', '2022-09-01', '2025-09-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true),
-  ('PS14', 'Test', '2022-10-01', '2025-10-01', (SELECT id FROM rooms WHERE name = 'Pre-School'), true);
+  ('AfterSchool', 'Ineligible', '2022-08-20', '2025-08-20', (SELECT id FROM rooms WHERE name = 'Pre-School'), true);
 
 -- ── Scheduled days — Mon / Wed / Fri for all test children ───────────────────
 
