@@ -9,7 +9,8 @@
     "dist": "vite build && electron-builder",
     "preview": "vite preview",
     "seed": "node -e \"const fs=require('fs'),{Pool}=require('pg'),cfg=JSON.parse(fs.readFileSync('db.config.json','utf-8'));new Pool({connectionString:cfg.connectionString}).query(fs.readFileSync('seed.sql','utf-8')).then(()=>{console.log('Seed complete.');process.exit(0)}).catch(e=>{console.error(e.message);process.exit(1)})\""  ,
-    "setup": "node -e \"const fs=require('fs'),{Pool}=require('pg'),cfg=JSON.parse(fs.readFileSync('db.config.json','utf-8'));new Pool({connectionString:cfg.connectionString}).query(fs.readFileSync('setup.sql','utf-8')).then(()=>{console.log('Setup complete.');process.exit(0)}).catch(e=>{console.error(e.message);process.exit(1)})\""
+    "setup": "node -e \"const fs=require('fs'),{Pool}=require('pg'),cfg=JSON.parse(fs.readFileSync('db.config.json','utf-8'));new Pool({connectionString:cfg.connectionString}).query(fs.readFileSync('setup.sql','utf-8')).then(()=>{console.log('Setup complete.');process.exit(0)}).catch(e=>{console.error(e.message);process.exit(1)})\"",
+    "teardown": "node -e \"const fs=require('fs'),{Pool}=require('pg'),cfg=JSON.parse(fs.readFileSync('db.config.json','utf-8'));new Pool({connectionString:cfg.connectionString}).query(fs.readFileSync('teardown.sql','utf-8')).then(()=>{console.log('Teardown complete.');process.exit(0)}).catch(e=>{console.error(e.message);process.exit(1)})\""
   },
   "build": {
     "appId": "com.nursery.manager",
