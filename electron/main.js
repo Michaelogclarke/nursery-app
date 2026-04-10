@@ -659,12 +659,13 @@ ipcMain.handle('rooms:getCalendarOccupancy', async (_event, startDate, endDate) 
   function roomOnDate(dob, targetDate) {
     const birth = new Date(dob)
 
-    // Hard move deadlines (age threshold + 4-month grace)
-    const leaveBabies = new Date(birth)
-    leaveBabies.setMonth(leaveBabies.getMonth() + 2 * 12 + 4)   // 2y 4m
+    // Normal age thresholds — the grace period is for the conflict checker only,
+    // not for determining which room a child is expected to be in on a given date.
+    const turn2 = new Date(birth)
+    turn2.setFullYear(turn2.getFullYear() + 2)
 
-    const leaveToddlers = new Date(birth)
-    leaveToddlers.setMonth(leaveToddlers.getMonth() + 3 * 12 + 4) // 3y 4m
+    const turn3 = new Date(birth)
+    turn3.setFullYear(turn3.getFullYear() + 3)
 
     // After School: birthday must be on/before Jul 1, move from Sep 1 that year
     const yearTurn4  = birth.getFullYear() + 4
@@ -673,9 +674,9 @@ ipcMain.handle('rooms:getCalendarOccupancy', async (_event, startDate, endDate) 
     const birthday4  = new Date(yearTurn4, birth.getMonth(), birth.getDate())
     const afterSchoolEligible = birthday4 <= cutoffJul1
 
-    if (targetDate < leaveBabies) {
+    if (targetDate < turn2) {
       return roomByName['Babies'] || null
-    } else if (targetDate < leaveToddlers) {
+    } else if (targetDate < turn3) {
       return roomByName['Toddlers'] || null
     } else if (afterSchoolEligible && targetDate >= sepDate) {
       return roomByName['After School'] || null
@@ -720,6 +721,84 @@ ipcMain.handle('rooms:getCalendarOccupancy', async (_event, startDate, endDate) 
   }
 
   return days
+})
+
+// ── Children in a room on a specific date ────────────────────────────────────
+//
+// Returns the list of children who will be in `roomId` on `date`,
+// using the same age-progression logic as the calendar occupancy handler.
+// Only returns children scheduled on that day_of_week.
+
+ipcMain.handle('rooms:getChildrenOnDate', async (_event, roomId, date) => {
+  const p = getPool()
+
+  const { rows: rooms } = await p.query('SELECT id, name, max_capacity FROM rooms ORDER BY id')
+  const roomById   = Object.fromEntries(rooms.map(r => [r.id, r]))
+  const roomByName = Object.fromEntries(rooms.map(r => [r.name, r]))
+
+  const targetRoom = roomById[roomId]
+  if (!targetRoom) throw new Error('Room not found')
+
+  const target = new Date(date + 'T12:00:00')
+  const dow    = target.getDay() // 1=Mon…5=Fri
+
+  const { rows: children } = await p.query(`
+    SELECT c.id, c.first_name, c.last_name, c.dob,
+           array_agg(csd.day_of_week) AS scheduled_days
+    FROM children c
+    JOIN child_scheduled_days csd ON csd.child_id = c.id
+    WHERE c.is_active = true
+    GROUP BY c.id, c.first_name, c.last_name, c.dob
+  `)
+
+  function roomOnDate(dob) {
+    const birth = new Date(dob)
+
+    const turn2 = new Date(birth)
+    turn2.setFullYear(turn2.getFullYear() + 2)
+
+    const turn3 = new Date(birth)
+    turn3.setFullYear(turn3.getFullYear() + 3)
+
+    const yearTurn4  = birth.getFullYear() + 4
+    const cutoffJul1 = new Date(yearTurn4, 6, 1)
+    const sepDate    = new Date(yearTurn4, 8, 1)
+    const birthday4  = new Date(yearTurn4, birth.getMonth(), birth.getDate())
+    const afterSchoolEligible = birthday4 <= cutoffJul1
+
+    if (target < turn2)                                      return roomByName['Babies']      || null
+    if (target < turn3)                                      return roomByName['Toddlers']    || null
+    if (afterSchoolEligible && target >= sepDate)            return roomByName['After School'] || null
+    return roomByName['Pre-School'] || null
+  }
+
+  const result = []
+  for (const child of children) {
+    if (!child.scheduled_days.includes(dow)) continue
+    const room = roomOnDate(child.dob)
+    if (room && room.id === roomId) {
+      // Calculate age on that date for display
+      const birth      = new Date(child.dob)
+      const ageMonths  = (target.getFullYear() - birth.getFullYear()) * 12 +
+                         (target.getMonth()    - birth.getMonth())
+      const ageYears   = Math.floor(ageMonths / 12)
+      const ageRemMo   = ageMonths % 12
+      const ageLabel   = ageYears > 0
+        ? (ageRemMo > 0 ? `${ageYears}y ${ageRemMo}mo` : `${ageYears}y`)
+        : `${ageMonths}mo`
+
+      result.push({
+        id:         child.id,
+        first_name: child.first_name,
+        last_name:  child.last_name,
+        dob:        child.dob,
+        age:        ageLabel,
+      })
+    }
+  }
+
+  result.sort((a, b) => a.last_name.localeCompare(b.last_name))
+  return result
 })
 
 // ── Attendance ────────────────────────────────────────────────────────────────

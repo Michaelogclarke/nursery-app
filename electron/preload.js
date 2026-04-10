@@ -4,7 +4,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   rooms: {
     getAll:                () => ipcRenderer.invoke('rooms:getAll'),
     getWithOccupancy:      () => ipcRenderer.invoke('rooms:getWithOccupancy'),
-    getCalendarOccupancy:  (start, end) => ipcRenderer.invoke('rooms:getCalendarOccupancy', start, end),
+    getCalendarOccupancy:  (start, end)       => ipcRenderer.invoke('rooms:getCalendarOccupancy', start, end),
+    getChildrenOnDate:     (roomId, date)     => ipcRenderer.invoke('rooms:getChildrenOnDate', roomId, date),
   },
   rota: {
     getByDate:         (date)                    => ipcRenderer.invoke('rota:getByDate', date),
