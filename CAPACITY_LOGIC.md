@@ -100,5 +100,5 @@ The form does not hard-block the save — staff can override if they have a plan
 |---|---|---|---|
 | Babies | 9 | 12 | 0–2 years |
 | Toddlers | — | 20 | 2–3 years |
-| Pre-School | 16 | 20 | 3–5 years |
+| Pre-School | 16 | 16 | 3–5 years |
 | After School | — | 20 | 4–11 years |

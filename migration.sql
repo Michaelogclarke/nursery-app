@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS rooms (
 INSERT INTO rooms (name, max_capacity) VALUES
   ('Babies',       12),
   ('Toddlers',     20),
-  ('Pre-School',   20),
+  ('Pre-School',   16),
   ('After School', 20)
 ON CONFLICT DO NOTHING;
 
