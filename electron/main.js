@@ -528,6 +528,42 @@ ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = 
 
   // If already over capacity, fail immediately
   if (occupancyAfterPlacement > room.max_capacity) {
+    // Find the earliest date a space opens up (soonest child to age out of this room)
+    let next_available_date = null
+    const LEAVE_RULE = {
+      'Babies':     { ageAtLeave: 2, graceMonths: 4 },
+      'Toddlers':   { ageAtLeave: 3, graceMonths: 4 },
+      'Pre-School': { ageAtLeave: 4, graceMonths: 0, sep1: true },
+    }
+    const leaveRule = LEAVE_RULE[room.name]
+    if (leaveRule) {
+      const { rows: occupants } = await p.query(
+        'SELECT dob FROM children WHERE room_id = $1 AND is_active = true',
+        [room_id]
+      )
+      const todayNow = new Date()
+      let earliest = null
+      for (const { dob } of occupants) {
+        const d = new Date(dob)
+        let leaveDate
+        if (leaveRule.sep1) {
+          const yearTurn4 = d.getFullYear() + leaveRule.ageAtLeave
+          const birthday = new Date(yearTurn4, d.getMonth(), d.getDate())
+          const cutoff   = new Date(yearTurn4, 6, 1)  // July 1
+          if (birthday > cutoff) continue              // misses cutoff, stays longer
+          leaveDate = new Date(yearTurn4, 8, 1)        // Sep 1
+        } else {
+          leaveDate = new Date(d)
+          leaveDate.setFullYear(leaveDate.getFullYear() + leaveRule.ageAtLeave)
+          leaveDate.setMonth(leaveDate.getMonth() + leaveRule.graceMonths)
+        }
+        if (leaveDate > todayNow && (!earliest || leaveDate < earliest)) {
+          earliest = leaveDate
+        }
+      }
+      if (earliest) next_available_date = earliest.toISOString().slice(0, 10)
+    }
+
     return {
       ok: false,
       conflicts: [{
@@ -536,6 +572,7 @@ ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = 
         move_date: null,
         room_name: room.name,
         reason: 'Room is already at capacity',
+        next_available_date,
       }],
     }
   }

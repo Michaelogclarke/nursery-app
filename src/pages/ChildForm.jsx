@@ -36,6 +36,7 @@ export default function ChildForm() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(null)
   const [roomBlocked, setRoomBlocked] = useState(null)
+  const [nextAvailableDate, setNextAvailableDate] = useState(null)
   const [capacityWarnings, setCapacityWarnings] = useState([])
   const [overrideInput, setOverrideInput] = useState('')
   const [overrideConfirmed, setOverrideConfirmed] = useState(false)
@@ -81,6 +82,7 @@ export default function ChildForm() {
 
       setAutoRoom(null)
       setRoomBlocked(null)
+      setNextAvailableDate(null)
       setCapacityWarnings([])
       setOverrideInput('')
       setOverrideConfirmed(false)
@@ -103,6 +105,7 @@ export default function ChildForm() {
         const hard = result.conflicts.find(c => c.reason === 'Room is already at capacity')
         if (hard) {
           setRoomBlocked(`${room.name} is currently full and cannot accept any more children.`)
+          setNextAvailableDate(hard.next_available_date || null)
         } else {
           setCapacityWarnings(result.conflicts)
         }
@@ -338,6 +341,9 @@ export default function ChildForm() {
           <div className="form-notification form-notification--error">
             <div className="form-notification-title">This placement is not possible</div>
             <p>{roomBlocked}</p>
+            {nextAvailableDate && (
+              <p>Next space expected: <strong>{new Date(nextAvailableDate + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong></p>
+            )}
             <p>
               To override this restriction, type the child's full name exactly as entered
               above and press Confirm Override.
@@ -387,7 +393,17 @@ export default function ChildForm() {
                 <li key={i}>{w.reason}</li>
               ))}
             </ul>
-            <p>Consider whether a space will be available before proceeding.</p>
+            {(() => {
+              const earliest = capacityWarnings
+                .map(w => w.move_date)
+                .filter(Boolean)
+                .sort()[0]
+              return earliest ? (
+                <p>The room will be at capacity from <strong>{new Date(earliest + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>. Consider whether a space will be available before proceeding.</p>
+              ) : (
+                <p>Consider whether a space will be available before proceeding.</p>
+              )
+            })()}
           </div>
         )}
 
