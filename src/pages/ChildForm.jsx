@@ -99,12 +99,16 @@ export default function ChildForm() {
 
       const result = await window.electronAPI.children.checkRoomCapacity(
         room.id,
-        isEdit ? Number(id) : null
+        isEdit ? Number(id) : null,
+        start_date || null
       )
       if (!result.ok) {
         const hard = result.conflicts.find(c => c.reason === 'Room is already at capacity')
         if (hard) {
-          setRoomBlocked(`${room.name} is currently full and cannot accept any more children.`)
+          const msg = start_date
+            ? `${room.name} will still be full on ${new Date(start_date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} and cannot accept any more children.`
+            : `${room.name} is currently full and cannot accept any more children.`
+          setRoomBlocked(msg)
           setNextAvailableDate(hard.next_available_date || null)
         } else {
           setCapacityWarnings(result.conflicts)

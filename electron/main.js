@@ -493,7 +493,7 @@ ipcMain.handle('children:moveToRoom', async (_event, childId, roomId) => {
 //   { ok: true }
 //   { ok: false, conflicts: [{ child_id, name, move_date, room_name }] }
 
-ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = null) => {
+ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = null, start_date = null) => {
   const p = getPool()
 
   // Room config — capacity and which feeder room feeds into this one
@@ -501,6 +501,13 @@ ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = 
     Toddlers:     { feeder: 'Babies',     ageAtMove: 2, gracePeriodMonths: 4 },
     'Pre-School': { feeder: 'Toddlers',   ageAtMove: 3, gracePeriodMonths: 4 },
     'After School': { feeder: 'Pre-School', ageAtMove: null, gracePeriodMonths: 0 },
+  }
+
+  // When a child ages out of a room (i.e. hard moves to the next)
+  const LEAVE_RULE = {
+    'Babies':     { ageAtLeave: 2, graceMonths: 4 },
+    'Toddlers':   { ageAtLeave: 3, graceMonths: 4 },
+    'Pre-School': { ageAtLeave: 4, graceMonths: 0, sep1: true },
   }
 
   // Fetch the destination room
@@ -512,6 +519,30 @@ ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = 
   const room = roomRows[0]
 
   const progression = ROOM_PROGRESSION[room.name]
+  const leaveRule   = LEAVE_RULE[room.name]
+
+  // Helper: compute the date a child in THIS room ages out, given their DOB
+  const computeLeaveDate = (dob) => {
+    if (!leaveRule) return null
+    const d = new Date(dob)
+    if (leaveRule.sep1) {
+      const yearTurn4 = d.getFullYear() + leaveRule.ageAtLeave
+      const birthday  = new Date(yearTurn4, d.getMonth(), d.getDate())
+      const cutoff    = new Date(yearTurn4, 6, 1)  // July 1
+      if (birthday > cutoff) return null            // misses cutoff, stays longer
+      return new Date(yearTurn4, 8, 1)              // Sep 1
+    }
+    const leaveDate = new Date(d)
+    leaveDate.setFullYear(leaveDate.getFullYear() + leaveRule.ageAtLeave)
+    leaveDate.setMonth(leaveDate.getMonth() + leaveRule.graceMonths)
+    return leaveDate
+  }
+
+  // Fetch current occupants of this room (used for start_date adjustment and next_available_date)
+  const { rows: roomOccupants } = await p.query(
+    'SELECT dob FROM children WHERE room_id = $1 AND is_active = true',
+    [room_id]
+  )
 
   // Current occupancy in destination room (excluding the child being moved)
   const occupancyQuery = child_id
@@ -526,40 +557,29 @@ ipcMain.handle('children:checkRoomCapacity', async (_event, room_id, child_id = 
   // After placing this child, occupancy becomes currentOccupancy + 1
   const occupancyAfterPlacement = currentOccupancy + 1
 
-  // If already over capacity, fail immediately
-  if (occupancyAfterPlacement > room.max_capacity) {
-    // Find the earliest date a space opens up (soonest child to age out of this room)
-    let next_available_date = null
-    const LEAVE_RULE = {
-      'Babies':     { ageAtLeave: 2, graceMonths: 4 },
-      'Toddlers':   { ageAtLeave: 3, graceMonths: 4 },
-      'Pre-School': { ageAtLeave: 4, graceMonths: 0, sep1: true },
+  // If a start_date is given, children who age out before that date free up a space.
+  // Reduce effective occupancy accordingly so a future-start child isn't hard-blocked
+  // by a room that will have vacancies by the time they arrive.
+  let leaversBeforeStart = 0
+  if (start_date && leaveRule) {
+    const startDateObj = new Date(start_date)
+    for (const { dob } of roomOccupants) {
+      const ld = computeLeaveDate(dob)
+      if (ld && ld <= startDateObj) leaversBeforeStart++
     }
-    const leaveRule = LEAVE_RULE[room.name]
+  }
+  const effectiveOccupancyAtStart = occupancyAfterPlacement - leaversBeforeStart
+
+  // Hard block: room will still be full when this child starts
+  if (effectiveOccupancyAtStart > room.max_capacity) {
+    // Find the earliest departure after start_date (or today if no start_date)
+    let next_available_date = null
     if (leaveRule) {
-      const { rows: occupants } = await p.query(
-        'SELECT dob FROM children WHERE room_id = $1 AND is_active = true',
-        [room_id]
-      )
-      const todayNow = new Date()
+      const refDate = start_date ? new Date(start_date) : new Date()
       let earliest = null
-      for (const { dob } of occupants) {
-        const d = new Date(dob)
-        let leaveDate
-        if (leaveRule.sep1) {
-          const yearTurn4 = d.getFullYear() + leaveRule.ageAtLeave
-          const birthday = new Date(yearTurn4, d.getMonth(), d.getDate())
-          const cutoff   = new Date(yearTurn4, 6, 1)  // July 1
-          if (birthday > cutoff) continue              // misses cutoff, stays longer
-          leaveDate = new Date(yearTurn4, 8, 1)        // Sep 1
-        } else {
-          leaveDate = new Date(d)
-          leaveDate.setFullYear(leaveDate.getFullYear() + leaveRule.ageAtLeave)
-          leaveDate.setMonth(leaveDate.getMonth() + leaveRule.graceMonths)
-        }
-        if (leaveDate > todayNow && (!earliest || leaveDate < earliest)) {
-          earliest = leaveDate
-        }
+      for (const { dob } of roomOccupants) {
+        const ld = computeLeaveDate(dob)
+        if (ld && ld > refDate && (!earliest || ld < earliest)) earliest = ld
       }
       if (earliest) next_available_date = earliest.toISOString().slice(0, 10)
     }
