@@ -2,8 +2,10 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
   rooms: {
-    getAll:            () => ipcRenderer.invoke('rooms:getAll'),
-    getWithOccupancy:  () => ipcRenderer.invoke('rooms:getWithOccupancy'),
+    getAll:                () => ipcRenderer.invoke('rooms:getAll'),
+    getWithOccupancy:      () => ipcRenderer.invoke('rooms:getWithOccupancy'),
+    getCalendarOccupancy:  (start, end)       => ipcRenderer.invoke('rooms:getCalendarOccupancy', start, end),
+    getChildrenOnDate:     (roomId, date)     => ipcRenderer.invoke('rooms:getChildrenOnDate', roomId, date),
   },
   rota: {
     getByDate:         (date)                    => ipcRenderer.invoke('rota:getByDate', date),
@@ -24,10 +26,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     checkOut:  (childId, date) => ipcRenderer.invoke('attendance:checkOut', childId, date),
   },
   children: {
-    getAll:      ()        => ipcRenderer.invoke('children:getAll'),
-    getById:     (id)      => ipcRenderer.invoke('children:getById', id),
-    add:         (data)    => ipcRenderer.invoke('children:add', data),
-    update:      (id, data)=> ipcRenderer.invoke('children:update', id, data),
-    deactivate:  (id)      => ipcRenderer.invoke('children:deactivate', id),
+    getAll:              ()                 => ipcRenderer.invoke('children:getAll'),
+    getById:             (id)               => ipcRenderer.invoke('children:getById', id),
+    add:                 (data)             => ipcRenderer.invoke('children:add', data),
+    update:              (id, data)         => ipcRenderer.invoke('children:update', id, data),
+    deactivate:          (id)               => ipcRenderer.invoke('children:deactivate', id),
+    checkRoomCapacity:   (roomId, childId, startDate)  => ipcRenderer.invoke('children:checkRoomCapacity', roomId, childId, startDate),
+    getAutoRoom:         (dob, startDate)   => ipcRenderer.invoke('children:getAutoRoom', dob, startDate),
+    getGraceEligible:    ()                 => ipcRenderer.invoke('children:getGraceEligible'),
+    moveToRoom:          (childId, roomId)  => ipcRenderer.invoke('children:moveToRoom', childId, roomId),
   },
 })

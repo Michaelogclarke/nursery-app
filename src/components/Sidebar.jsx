@@ -5,6 +5,7 @@ const navItems = [
   { to: '/children', label: 'Children' },
   { to: '/attendance', label: 'Attendance' },
   { to: '/rooms', label: 'Rooms' },
+  { to: '/rooms/calendar', label: 'Room Calendar' },
   { to: '/staff', label: 'Staff' },
   { to: '/rota', label: 'Rota' },
   { to: '/forms', label: 'Forms' },

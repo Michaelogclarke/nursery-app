@@ -45,6 +45,143 @@
 
 .age { color: var(--text-muted); }
 
+.child-row--grace {
+  background: #fffbeb;
+}
+.child-row--grace:hover { background: #fef9c3; }
+
+.child-row-info {
+  flex: 1;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.tag--grace {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.btn-move {
+  flex-shrink: 0;
+  margin-left: 16px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #d97706;
+  border-radius: 6px;
+  background: #fff;
+  color: #d97706;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.1s, color 0.1s;
+}
+.btn-move:hover { background: #d97706; color: #fff; }
+.btn-move:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.day-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.day-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #f4f6f9;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.day-btn:hover { background: #e8edf3; }
+.day-btn--active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.day-picker-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #dc2626;
+}
+
+.auto-room-display {
+  padding: 8px 12px;
+  background: #f4f6f9;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-primary);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+/* ── Form notifications ───────────────────────────────────────────────────── */
+
+.form-notification {
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.form-notification ul {
+  margin: 8px 0 8px 18px;
+}
+
+.form-notification p + p {
+  margin-top: 6px;
+}
+
+.form-notification--error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #7f1d1d;
+}
+
+.form-notification--warning {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #78350f;
+}
+
+.form-notification-title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.form-override {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-override-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  font-size: 13px;
+  background: #fff;
+  color: var(--text-primary);
+}
+.form-override-input:focus {
+  outline: none;
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px #fecaca;
+}
+
+.form-override-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ── Profile ─────────────────────────────────────────────────────────────────── */
 
 .profile-topbar {

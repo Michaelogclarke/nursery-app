@@ -79,6 +79,7 @@ export default function ChildProfile() {
           <h3 className="profile-section-title">Personal Details</h3>
           <dl>
             <Field label="Date of birth" value={formatDate(child.dob)} />
+            <Field label="Start date" value={child.start_date ? formatDate(child.start_date) : null} />
             <Field label="Room" value={child.room_name} />
           </dl>
         </section>
